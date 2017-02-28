@@ -1,0 +1,59 @@
+name:                mf
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/thsutton/mf#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Thomas Sutton
+maintainer:          me@thomas-sutton.id.au
+copyright:           2017 Thomas Sutton
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+source-repository head
+  type:     git
+  location: https://github.com/thsutton/mf
+
+library
+  hs-source-dirs:      lib
+  exposed-modules:     Lib
+  build-depends:       base >= 4.7 && < 5
+  default-language:    Haskell2010
+
+executable mf
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , mf
+  default-language:    Haskell2010
+
+test-suite mf-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , mf
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+test-suite doctests
+  default-language:    Haskell2010
+  hs-source-dirs:      test
+  type:                exitcode-stdio-1.0
+  ghc-options:         -threaded
+  main-is:             doctests.hs
+  build-depends:       base
+                     , QuickCheck
+                     , doctest >= 0.9
+
+test-suite             hlint-check
+  default-language:    Haskell2010
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             hlint-check.hs
+  build-depends:       base
+                     , hlint
