@@ -20,7 +20,15 @@ noSolution graph = do
   prettyPrint graph
   exitFailure
 
+printProblem :: DynGraph g => AFlow g -> IO ()
+printProblem (Flow cap flow) = do
+  putStrLn "-- Problem"
+  prettyPrint cap
+  putStrLn "\n"
+  putStrLn "-- Solution"
+  prettyPrint flow
+
 main :: IO ()
 main = do
-  maybe (noSolution graph) prettyPrint $ maximalFlow graph source sink
+  maybe (noSolution graph) printProblem $ maximalFlow graph source sink
 

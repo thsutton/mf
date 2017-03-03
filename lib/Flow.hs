@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TupleSections              #-}
 module Flow where
 
 import Data.Graph.Inductive.Graph
@@ -9,8 +10,10 @@ type FlowCap = Int
 
 type Height = Int
 
-newtype Flow g a b = Flow { fromFlow :: g a b }
-  deriving (DynGraph, Graph)
+data Flow g a b = Flow
+  { capacity :: g a b
+  , flow     :: g a b
+  }
 
 -- | 'AFlow' is a 'Graph' which we'll use with height-labelled nodes
 -- and flow-labelled edges.
@@ -28,25 +31,31 @@ maximalFlow
   -> Maybe (AFlow g)
 maximalFlow graph source sink =
   let preflow = initialFlow graph source
-  in Just preflow
+  in Just (saturate preflow source)
 
--- | Calculate the initial flow of the graph.
+saturate
+  :: DynGraph g
+  => AFlow g
+  -> Node
+  -> AFlow g
+saturate p@(Flow capacity flow) s =
+  foldr step p $ suc capacity s
+  where
+    step t p = push p s t
+
+-- | Construct a problem from a graph.
 initialFlow
   :: DynGraph g
   => g a FlowCap
   -> Node
   -> AFlow g
-initialFlow graph source = Flow (gfiltermap ctx graph)
+initialFlow graph source = Flow capacity flow
   where
+    capacity = gfiltermap (\(ins, n, _, outs) -> Just (ins, n, 0, outs)) graph
+    flow = gfiltermap ctx graph
     v = order graph
     ctx (ine, n, _, oute)
-      | n == source = Just ([], n, v, oute)
-      | otherwise  = Just ([], n, 0, [])
-
-data PushError
-  = NotActive Node
-  | NotAdmissible Node Node
-  | DistanceInvariant Node Height Node Height
+      | otherwise  = Just (map ((0,) . snd) ine , n, 0, map ((0,) . snd) oute)
 
 -- | Push excess flow accumulated at u to v.
 push
@@ -54,9 +63,32 @@ push
   => AFlow g
   -> Node
   -> Node
-  -> Either PushError (AFlow g)
-push flow u v =
-  Left $ NotActive u
+  -> AFlow g
+push (Flow capacity flow) u v =
+  let u_ctx = context flow u
+      v_ctx = context flow v
+      u_excess = (sum . map edgeLabel $ inn' u_ctx) - (sum . map edgeLabel $ out' u_ctx)
+      v_excess = (sum . map edgeLabel $ inn' u_ctx) - (sum . map edgeLabel $ out' u_ctx)
+      uv_flow = edgeLabel (edgeTo' u_ctx v)
+      vu_flow = edgeLabel (edgeTo' v_ctx u)
+      uv_capacity = 0
+      delta = min u_excess (uv_capacity - uv_flow)
+
+      uv_flow' = uv_flow + delta
+      vu_flow' = vu_flow - delta
+      u_excess' = u_excess - delta
+      v_excess' = v_excess + delta
+
+  in Flow capacity
+     . insEdge (u, v, uv_flow') . insEdge (v, u, vu_flow') $ flow
+
+-- | Get the 'LEdge' from a node to another node (or fail).
+edgeTo' :: Context a b -> Node -> LEdge b
+edgeTo' c@(i, u, l, o) v =
+    maybe (error $ "Could not find edge from " ++ show u ++ " to " ++ show v)
+    (\l->(u,v,l)) (lookup v (map swap o))
+  where
+    swap (a,b) = (b,a)
 
 {-
 
