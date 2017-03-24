@@ -22,6 +22,7 @@ library
   hs-source-dirs:      lib
   exposed-modules:     Lib
                      , Flow
+                     , Take2
   build-depends:       base >= 4.7 && < 5
                      , fgl
 

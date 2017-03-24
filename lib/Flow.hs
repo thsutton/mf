@@ -1,5 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TupleSections              #-}
+{-# LANGUAGE TupleSections #-}
 module Flow where
 
 import Data.Graph.Inductive.Graph
@@ -54,8 +53,7 @@ initialFlow graph source = Flow capacity flow
     capacity = gfiltermap (\(ins, n, _, outs) -> Just (ins, n, 0, outs)) graph
     flow = gfiltermap ctx graph
     v = order graph
-    ctx (ine, n, _, oute)
-      | otherwise  = Just (map ((0,) . snd) ine , n, 0, map ((0,) . snd) oute)
+    ctx (ine, n, _, oute) = Just (map ((0,) . snd) ine , n, 0, map ((0,) . snd) oute)
 
 -- | Push excess flow accumulated at u to v.
 push

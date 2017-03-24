@@ -29,6 +29,6 @@ printProblem (Flow cap flow) = do
   prettyPrint flow
 
 main :: IO ()
-main = do
+main =
   maybe (noSolution graph) printProblem $ maximalFlow graph source sink
 
