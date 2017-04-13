@@ -29,6 +29,10 @@ printProblem (Flow cap flow) = do
   prettyPrint flow
 
 main :: IO ()
-main =
+main = do
+  let prob = initialFlow graph source
+  putStrLn "\n#\n# Initial Flow\n#\n"
+  printProblem prob
+  putStrLn "\n#\n# Solved Problem\n#\n"
   maybe (noSolution graph) printProblem $ maximalFlow graph source sink
 

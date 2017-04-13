@@ -50,7 +50,8 @@ initialFlow
   -> AFlow g
 initialFlow graph source = Flow capacity flow
   where
-    capacity = gfiltermap (\(ins, n, _, outs) -> Just (ins, n, 0, outs)) graph
+    capacity = gfiltermap (\(ins, n, _, outs) -> Just (ins, n, h n, outs)) graph
+    h n = if n == source then v else 0
     flow = gfiltermap ctx graph
     v = order graph
     ctx (ine, n, _, oute) = Just (map ((0,) . snd) ine , n, 0, map ((0,) . snd) oute)
